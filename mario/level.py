@@ -1,6 +1,7 @@
 import pygame
 
 from mario import settings
+from mario.player import Player
 from mario.tile import Tile
 
 
@@ -11,6 +12,7 @@ class Level:
         # level setup
         self.display_surface = surface
         self.tiles = pygame.sprite.Group()
+        self.player = pygame.sprite.GroupSingle()
         self.setup_level(level_data)
         self.world_shift = 0
 
@@ -20,10 +22,15 @@ class Level:
                 if col == ' ':
                     continue
 
-                self.tiles.add(
-                    Tile((x * settings.tile_size, y * settings.tile_size), settings.tile_size)
-                )
+                if col == 'X':
+                    item = Tile((x * settings.tile_size, y * settings.tile_size), settings.tile_size)
+                    self.tiles.add(item)
+                if col == 'P':
+                    item = Player((x * settings.tile_size, y * settings.tile_size))
+                    self.player.add(item)
 
     def run(self):
+        self.player.update()
         self.tiles.update(self.world_shift)
         self.tiles.draw(self.display_surface)
+        self.player.draw(self.display_surface)
