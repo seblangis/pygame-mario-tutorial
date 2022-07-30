@@ -14,4 +14,5 @@ level_map = [
 
 tile_size = 64
 screen_width = 1200
+screen_scroll_limit = screen_width / 4
 screen_height = tile_size * len(level_map)
