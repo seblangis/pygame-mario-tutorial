@@ -6,7 +6,7 @@ from mario.tile import Tile
 from mario.level import Level
 
 pygame.init()
-screen = pygame.display.set_mode((settings.screen_width, settings.screen_height), pygame.SCALED)
+screen = pygame.display.set_mode((settings.screen_width, settings.screen_height))  # , pygame.SCALED
 clock = pygame.time.Clock()
 level = Level(settings.level_map, screen)
 
