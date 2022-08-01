@@ -1,6 +1,7 @@
 import pygame
 
 from mario import settings
+from mario.particle import ParticleEffect
 from mario.player import Player
 from mario.tile import Tile
 
@@ -16,6 +17,17 @@ class Level:
         self.setup_level(level_data)
         self.world_shift = 0
         self.current_x = 0
+        self.player_was_on_ground = True
+
+        # dust
+        self.dust_sprite = pygame.sprite.GroupSingle()
+
+    def create_particles(self, position, particle_type):
+        if self.dust_sprite.sprites():
+            return
+
+        particle_effect = ParticleEffect(position, particle_type)
+        self.dust_sprite.add(particle_effect)
 
     def setup_level(self, layout):
         for y, row in enumerate(layout):
@@ -27,7 +39,7 @@ class Level:
                     item = Tile((x * settings.tile_size, y * settings.tile_size), settings.tile_size)
                     self.tiles.add(item)
                 if col == 'P':
-                    item = Player((x * settings.tile_size, y * settings.tile_size))
+                    item = Player((x * settings.tile_size, y * settings.tile_size), self.display_surface, self.create_particles)
                     self.player.add(item)
 
     def scroll_x(self):
@@ -89,12 +101,20 @@ class Level:
         if player.on_ceiling and player.direction.y > 0:
             player.on_ceiling = False
 
+        if not self.player_was_on_ground and player.on_ground:
+            self.create_particles(self.player.sprite.rect.midbottom, 'land')
+        self.player_was_on_ground = player.on_ground
+
     def run(self):
 
         # level tiles
         self.tiles.update(self.world_shift)
         self.tiles.draw(self.display_surface)
         self.scroll_x()
+
+        # dust
+        self.dust_sprite.update(self.world_shift)
+        self.dust_sprite.draw(self.display_surface)
 
         # player
         self.player.update()
