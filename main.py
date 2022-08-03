@@ -2,13 +2,13 @@ import pygame
 import sys
 
 from mario import settings
-from mario.tile import Tile
 from mario.level import Level
+from mario.game_data import level_0
 
 pygame.init()
 screen = pygame.display.set_mode((settings.screen_width, settings.screen_height))  # , pygame.SCALED
 clock = pygame.time.Clock()
-level = Level(settings.level_map, screen)
+level = Level(level_0, screen)
 
 while True:
     for event in pygame.event.get():
