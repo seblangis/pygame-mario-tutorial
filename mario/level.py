@@ -1,10 +1,10 @@
 import pygame
 
-from mario import settings
+from mario import settings, game_data
 from mario.particle import ParticleEffect
 from mario.player import Player
-from mario.support import import_csv_layout
-from mario.tile import Tile
+from mario.support import import_csv_layout, import_cut_graphics
+from mario.tile import Tile, StaticTile
 
 
 class Level:
@@ -41,15 +41,15 @@ class Level:
 
     def create_tile_group(self, layout, layout_name):
         sprite_group = pygame.sprite.Group()
+        tiles = import_cut_graphics(game_data.tilesets[layout_name])
 
         for y, row in enumerate(layout):
             for x, col in enumerate(row):
                 if col == -1:
                     continue
 
-                if layout_name == 'terrain':
-                    item = Tile((x * settings.tile_size, y * settings.tile_size), settings.tile_size)
-                    sprite_group.add(item)
+                item = StaticTile((x * settings.tile_size, y * settings.tile_size), tiles[col])
+                sprite_group.add(item)
 
         return sprite_group
 

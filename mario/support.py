@@ -3,6 +3,8 @@ from csv import reader
 
 import pygame
 
+from mario.settings import tile_size
+
 
 def import_csv_layout(path: str) -> list[list[int]]:
     layout = []
@@ -13,6 +15,23 @@ def import_csv_layout(path: str) -> list[list[int]]:
             layout.append([int(val) for val in line])
 
     return layout
+
+
+def import_cut_graphics(path):
+    tiles = []
+
+    surface = pygame.image.load(path).convert_alpha()
+    tile_count_x = surface.get_rect().width // tile_size
+    tile_count_y = surface.get_rect().height // tile_size
+
+    for row in range(tile_count_y):
+        for col in range(tile_count_x):
+            new_surface = pygame.surface.Surface((tile_size, tile_size))
+            new_surface.blit(surface, (0, 0), (col * tile_size, row * tile_size, tile_size, tile_size))
+
+            tiles.append(new_surface)
+
+    return tiles
 
 
 def import_folder(path: str):
