@@ -3,6 +3,7 @@ import pygame
 from mario import settings
 from mario.particle import ParticleEffect
 from mario.player import Player
+from mario.support import import_csv_layout
 from mario.tile import Tile
 
 
@@ -10,14 +11,23 @@ class Level:
 
     def __init__(self, level_data, surface):
 
-        # level setup
+        # game setup
         self.display_surface = surface
-        self.tiles = pygame.sprite.Group()
-        self.player = pygame.sprite.GroupSingle()
-        self.setup_level(level_data)
         self.world_shift = 0
         self.current_x = 0
+
+        # player setup
+        self.player = pygame.sprite.GroupSingle()
         self.player_was_on_ground = True
+
+        # level setup
+        terrain_layout = import_csv_layout(level_data['terrain'])
+        self.tiles = self.create_tile_group(terrain_layout, 'terrain')
+        # self.setup_level(terrain_layout)
+
+        # tmp
+        item = Player((10 * settings.tile_size, 10 * settings.tile_size), self.display_surface, self.create_particles)
+        self.player.add(item)
 
         # dust
         self.dust_sprite = pygame.sprite.GroupSingle()
@@ -29,18 +39,33 @@ class Level:
         particle_effect = ParticleEffect(position, particle_type)
         self.dust_sprite.add(particle_effect)
 
-    def setup_level(self, layout):
+    def create_tile_group(self, layout, layout_name):
+        sprite_group = pygame.sprite.Group()
+
         for y, row in enumerate(layout):
             for x, col in enumerate(row):
-                if col == ' ':
+                if col == -1:
                     continue
 
-                if col == 'X':
+                if layout_name == 'terrain':
                     item = Tile((x * settings.tile_size, y * settings.tile_size), settings.tile_size)
-                    self.tiles.add(item)
-                if col == 'P':
-                    item = Player((x * settings.tile_size, y * settings.tile_size), self.display_surface, self.create_particles)
-                    self.player.add(item)
+                    sprite_group.add(item)
+
+        return sprite_group
+
+    # def setup_level(self, layout):
+    #     for y, row in enumerate(layout):
+    #         for x, col in enumerate(row):
+    #             if col == '-1':
+    #                 continue
+    #
+    #             if True:  # col == 'X':
+    #                 item = Tile((x * settings.tile_size, y * settings.tile_size), settings.tile_size)
+    #                 self.tiles.add(item)
+    #             # if col == 'P':
+    #             if x == y == 10:
+    #                 item = Player((x * settings.tile_size, y * settings.tile_size), self.display_surface, self.create_particles)
+    #                 self.player.add(item)
 
     def scroll_x(self):
         player = self.player.sprite

@@ -4,9 +4,13 @@ from csv import reader
 import pygame
 
 
-def import_csv_layout(path: str):
+def import_csv_layout(path: str) -> list[list[int]]:
+    layout = []
     with open(path) as level_map:
-        layout = list(reader(level_map, delimiter=','))
+        lines = (reader(level_map, delimiter=','))
+
+        for line in lines:
+            layout.append([int(val) for val in line])
 
     return layout
 
