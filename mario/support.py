@@ -34,6 +34,10 @@ def import_cut_graphics(path):
     return tiles
 
 
+def import_single_tile(path):
+    return [pygame.image.load(path)]
+
+
 def import_folder(path: str):
     surfaces = []
 

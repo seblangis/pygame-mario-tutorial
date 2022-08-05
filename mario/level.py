@@ -3,8 +3,8 @@ import pygame
 from mario import settings, game_data
 from mario.particle import ParticleEffect
 from mario.player import Player
-from mario.support import import_csv_layout, import_cut_graphics
-from mario.tile import Tile, StaticTile
+from mario.support import import_csv_layout, import_cut_graphics, import_single_tile
+from mario.tile import Tile, StaticTile, CrateTile
 
 
 class Level:
@@ -22,8 +22,16 @@ class Level:
 
         # level setup
         terrain_layout = import_csv_layout(level_data['terrain'])
-        self.tiles = self.create_tile_group(terrain_layout, 'terrain')
-        # self.setup_level(terrain_layout)
+        terrain_tiles = import_cut_graphics(game_data.tilesets['terrain'])
+        self.terrain_sprites = self.create_tile_group(terrain_layout, terrain_tiles, StaticTile)
+
+        grass_layout = import_csv_layout(level_data['grass'])
+        grass_tiles = import_cut_graphics(game_data.tilesets['grass'])
+        self.grass_sprites = self.create_tile_group(grass_layout, grass_tiles, StaticTile)
+
+        crate_layout = import_csv_layout(level_data['crates'])
+        crate_tiles = import_single_tile(game_data.tilesets['crates'])
+        self.crate_sprites = self.create_tile_group(crate_layout, crate_tiles, CrateTile)
 
         # tmp
         item = Player((10 * settings.tile_size, 10 * settings.tile_size), self.display_surface, self.create_particles)
@@ -39,16 +47,15 @@ class Level:
         particle_effect = ParticleEffect(position, particle_type)
         self.dust_sprite.add(particle_effect)
 
-    def create_tile_group(self, layout, layout_name):
+    def create_tile_group(self, layout, tiles, tile_class):
         sprite_group = pygame.sprite.Group()
-        tiles = import_cut_graphics(game_data.tilesets[layout_name])
 
         for y, row in enumerate(layout):
             for x, col in enumerate(row):
                 if col == -1:
                     continue
 
-                item = StaticTile((x * settings.tile_size, y * settings.tile_size), tiles[col])
+                item = tile_class((x * settings.tile_size, y * settings.tile_size), tiles[col])
                 sprite_group.add(item)
 
         return sprite_group
@@ -86,7 +93,7 @@ class Level:
         player = self.player.sprite
         player.rect.x += player.direction.x * player.speed
 
-        for sprite in self.tiles.sprites():
+        for sprite in self.terrain_sprites.sprites():
             if sprite.rect.colliderect(player.rect):
                 if player.direction.x < 0:
                     player.rect.left = sprite.rect.right
@@ -110,7 +117,7 @@ class Level:
         player = self.player.sprite
         player.apply_gravity()
 
-        for sprite in self.tiles.sprites():
+        for sprite in self.terrain_sprites.sprites():
             if sprite.rect.colliderect(player.rect):
                 if player.direction.y > 0:
                     player.rect.bottom = sprite.rect.top
@@ -133,9 +140,10 @@ class Level:
     def run(self):
 
         # level tiles
-        self.tiles.update(self.world_shift)
-        self.tiles.draw(self.display_surface)
-        self.scroll_x()
+        self.grass_sprites.update(self.world_shift)
+        self.grass_sprites.draw(self.display_surface)
+        self.terrain_sprites.update(self.world_shift)
+        self.terrain_sprites.draw(self.display_surface)
 
         # dust
         self.dust_sprite.update(self.world_shift)
@@ -146,3 +154,7 @@ class Level:
         self.horizontal_movement_collision()
         self.vertical_movement_collision()
         self.player.draw(self.display_surface)
+
+        self.crate_sprites.update(self.world_shift)
+        self.crate_sprites.draw(self.display_surface)
+        self.scroll_x()
