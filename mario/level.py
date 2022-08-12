@@ -1,6 +1,7 @@
 import pygame
 
 from mario import settings, game_data
+from mario.decorations import Sky, Water, Clouds
 from mario.particle import ParticleEffect
 from mario.player import Player
 from mario.support import import_csv_layout, import_cut_graphics, import_single_tile, import_folder
@@ -65,6 +66,12 @@ class Level:
 
         # dust
         self.dust_sprite = pygame.sprite.GroupSingle()
+
+        # decorations
+        self.sky = Sky(8)
+        level_width = len(terrain_layout[0]) * settings.tile_size
+        self.water = Water(settings.screen_height - 20, level_width)
+        self.clouds = Clouds(8, level_width, 20)
 
     def create_particles(self, position, particle_type):
         if self.dust_sprite.sprites():
@@ -172,11 +179,14 @@ class Level:
                 enemy.reverse()
 
     def run(self):
+        self.sky.draw(self.display_surface)
+
         self.enemy_collision_reverse()
         self.constraint_sprites.update(self.world_shift)
 
         # background level tiles
         for sprite_group in [
+            self.clouds.cloud_sprites,
             self.bg_palm_sprites,
             self.crate_sprites,
             self.grass_sprites,
@@ -185,6 +195,7 @@ class Level:
             self.dust_sprite,
             self.enemy_sprites,
             self.goal,
+            self.water.water_sprites,
         ]:
             sprite_group.update(self.world_shift)
             sprite_group.draw(self.display_surface)
