@@ -60,9 +60,8 @@ class Level:
         enemy_tiles = [import_folder(game_data.tilesets['enemies'])]
         self.enemy_sprites = self.create_tile_group(enemy_layout, enemy_tiles, EnemyTile)
         constraint_layout = import_csv_layout(level_data['constraints'])
-        constrait_tiles = [None, pygame.surface.Surface((64, 64))]
-        constrait_tiles[1].fill('red')
-        self.constraint_sprites = self.create_tile_group(constraint_layout, constrait_tiles, ConstraintTile)
+        constraint_tiles = [None, pygame.surface.Surface((64, 64), flags=pygame.SRCALPHA)]
+        self.constraint_sprites = self.create_tile_group(constraint_layout, constraint_tiles, ConstraintTile)
 
         # dust
         self.dust_sprite = pygame.sprite.GroupSingle()
@@ -129,7 +128,7 @@ class Level:
         player = self.player.sprite
         player.rect.x += player.direction.x * player.speed
 
-        for sprite in self.terrain_sprites.sprites():
+        for sprite in self.terrain_sprites.sprites() + self.crate_sprites.sprites() + self.fg_palm_sprites.sprites():
             if sprite.rect.colliderect(player.rect):
                 if player.direction.x < 0:
                     player.rect.left = sprite.rect.right
@@ -153,7 +152,7 @@ class Level:
         player = self.player.sprite
         player.apply_gravity()
 
-        for sprite in self.terrain_sprites.sprites():
+        for sprite in self.terrain_sprites.sprites() + self.crate_sprites.sprites() + self.fg_palm_sprites.sprites():
             if sprite.rect.colliderect(player.rect):
                 if player.direction.y > 0:
                     player.rect.bottom = sprite.rect.top
@@ -179,13 +178,14 @@ class Level:
                 enemy.reverse()
 
     def run(self):
-        self.sky.draw(self.display_surface)
+        self.horizontal_movement_collision()
+        self.vertical_movement_collision()
 
         self.enemy_collision_reverse()
-        self.constraint_sprites.update(self.world_shift)
 
-        # background level tiles
+        self.sky.draw(self.display_surface)
         for sprite_group in [
+            self.constraint_sprites,
             self.clouds.cloud_sprites,
             self.bg_palm_sprites,
             self.crate_sprites,
@@ -196,17 +196,10 @@ class Level:
             self.enemy_sprites,
             self.goal,
             self.water.water_sprites,
+            self.player,
+            self.fg_palm_sprites,
         ]:
             sprite_group.update(self.world_shift)
             sprite_group.draw(self.display_surface)
 
-        # player
-        self.player.update()
-        self.horizontal_movement_collision()
-        self.vertical_movement_collision()
-        self.player.draw(self.display_surface)
-
-        # foreground level tiles
-        self.fg_palm_sprites.update(self.world_shift)
-        self.fg_palm_sprites.draw(self.display_surface)
         self.scroll_x()

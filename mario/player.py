@@ -40,6 +40,13 @@ class Player(pygame.sprite.Sprite):
         self.on_left = False
         self.on_right = False
 
+        # gamepad
+        if pygame.joystick.get_count():
+            self.gamepad = pygame.joystick.Joystick(0)
+            self.gamepad.init()
+        else:
+            self.gamepad = None
+
     def import_character_assets(self):
         character_path = 'graphics/character'
 
@@ -104,16 +111,18 @@ class Player(pygame.sprite.Sprite):
     def get_input(self):
         keys = pygame.key.get_pressed()
 
-        if keys[pygame.K_RIGHT]:
-            self.direction.x = 1
-            self.facing_right = True
-        elif keys[pygame.K_LEFT]:
-            self.direction.x = -1
-            self.facing_right = False
-        else:
-            self.direction.x = 0
+        # Movement
+        self.direction.x = keys[pygame.constants.K_RIGHT] - keys[pygame.constants.K_LEFT]
 
-        if keys[pygame.K_SPACE] and self.on_ground:
+        if self.gamepad:
+            self.direction.x += round(self.gamepad.get_axis(0))
+
+        if self.direction.x > 0:
+            self.facing_right = True
+        elif self.direction.x < 0:
+            self.facing_right = False
+
+        if self.on_ground and (keys[pygame.K_SPACE] or (self.gamepad and self.gamepad.get_button(0))) :
             self.jump()
 
     def get_status(self):
@@ -134,7 +143,7 @@ class Player(pygame.sprite.Sprite):
         self.direction.y = self.jump_speed
         self.create_particle(self.rect.midbottom, 'jump')
 
-    def update(self):
+    def update(self, _):
         self.get_input()
         self.get_status()
         self.animate()
