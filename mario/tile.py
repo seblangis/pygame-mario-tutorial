@@ -26,6 +26,16 @@ class StaticTile(Tile):
         self.image = image
 
 
+class BackgroundTile(StaticTile):
+
+    def __init__(self, position: tuple[int, int], image: Surface, parallax_offset):
+        super().__init__(position, image)
+        self.parallax_offset = parallax_offset
+
+    def update(self, x_shift):
+        super().update(x_shift // self.parallax_offset)
+
+
 class CrateTile(StaticTile):
 
     def __init__(self, position: tuple[int, int], surface: Surface):

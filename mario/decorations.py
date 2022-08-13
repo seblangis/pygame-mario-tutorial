@@ -4,7 +4,7 @@ import pygame
 
 from mario import settings
 from mario.support import import_folder
-from mario.tile import AnimatedTile, StaticTile
+from mario.tile import AnimatedTile, BackgroundTile
 
 
 class Sky:
@@ -68,5 +68,5 @@ class Clouds:
             x = random.randint(min_x, max_x)
             y = random.randint(min_y, max_y)
 
-            sprite = StaticTile((x, y), cloud)
+            sprite = BackgroundTile((x, y), cloud, random.randint(2, 3))
             self.cloud_sprites.add(sprite)
