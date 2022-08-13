@@ -10,7 +10,7 @@ from mario.tile import StaticTile, CrateTile, PalmTile, CoinTile, EnemyTile, Con
 
 class Level:
 
-    def __init__(self, level_data, surface):
+    def __init__(self, level_data, surface, quit_level_func):
 
         # game setup
         self.display_surface = surface
@@ -49,6 +49,7 @@ class Level:
             import_folder(game_data.tilesets['palms'][0]),
             import_folder(game_data.tilesets['palms'][1]),
             import_folder(game_data.tilesets['palms'][2]),
+            import_folder(game_data.tilesets['palms'][2]),
         ]
         self.fg_palm_sprites = self.create_tile_group(fg_palm_layout, palm_tiles, PalmTile)
 
@@ -71,6 +72,8 @@ class Level:
         level_width = len(terrain_layout[0]) * settings.tile_size
         self.water = Water(settings.screen_height - 20, level_width)
         self.clouds = Clouds(8, level_width, 20)
+
+        self.quit_level = quit_level_func
 
     def create_particles(self, position, particle_type):
         if self.dust_sprite.sprites():
@@ -177,11 +180,19 @@ class Level:
             if pygame.sprite.spritecollide(enemy, self.constraint_sprites, False):
                 enemy.reverse()
 
+    def goal_collision_check(self):
+        if self.goal.sprite.rect.colliderect(self.player.sprite.rect):
+            self.quit_level(success=True)
+
+        if self.player.sprite.rect.y > settings.screen_height:
+            self.quit_level(success=False)
+
     def run(self):
         self.horizontal_movement_collision()
         self.vertical_movement_collision()
 
         self.enemy_collision_reverse()
+        self.goal_collision_check()
 
         self.sky.draw(self.display_surface)
         for sprite_group in [

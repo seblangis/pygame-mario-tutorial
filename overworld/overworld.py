@@ -25,7 +25,7 @@ class Icon(pygame.sprite.Sprite):
 
 class Overworld:
 
-    def __init__(self, start_level, max_level, surface):
+    def __init__(self, start_level, max_level, surface, select_level_func):
         self.current_level = start_level
         self.max_level = max_level
 
@@ -49,6 +49,14 @@ class Overworld:
         else:
             self.gamepad = None
 
+        self.select_level = select_level_func
+
+        self.global_cooldown = None
+        self.reset_cooldown()
+
+    def reset_cooldown(self):
+        self.global_cooldown = 30
+
     def setup_nodes(self):
         for index, node_data in levels.items():
             available = index <= self.max_level
@@ -65,13 +73,23 @@ class Overworld:
             for index, node in levels.items()
             if index <= self.max_level
         ]
-        pygame.draw.lines(self.surface, 'red', False, points, 6)
+
+        if len(points) > 1:
+            pygame.draw.lines(self.surface, 'red', False, points, 6)
 
     def get_input(self):
+        if self.global_cooldown:
+            self.global_cooldown -= 1
+            return
+
         if self.movement_part:
             return
 
         keys = pygame.key.get_pressed()
+
+        if keys[pygame.constants.K_SPACE] or (self.gamepad and self.gamepad.get_button(0)):
+            self.select_level(self.current_level)
+            return
 
         # Movement
         direction = keys[pygame.constants.K_RIGHT] - keys[pygame.constants.K_LEFT]
@@ -79,7 +97,7 @@ class Overworld:
         if self.gamepad:
             direction += round(self.gamepad.get_axis(0))
 
-        if direction < 0 and self.current_level > 0:
+        if direction < 0 < self.current_level:
             self.move_direction = self.get_movement_data(-1)
             self.current_level -= 1
         elif direction > 0 and self.current_level < self.max_level:
