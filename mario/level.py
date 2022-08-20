@@ -184,7 +184,7 @@ class Level:
         if self.goal.sprite.rect.colliderect(self.player.sprite.rect):
             self.quit_level(success=True)
 
-        if self.player.sprite.rect.y > settings.screen_height:
+        if self.player.sprite.rect.top > settings.screen_height:
             self.quit_level(success=False)
 
     def run(self):

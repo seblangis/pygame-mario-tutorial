@@ -2,24 +2,45 @@ from typing import Literal
 
 import pygame
 
+from mario.decorations import OverworldSky
+from mario.support import import_folder
 from overworld.game_data import levels
 
 
 class Node(pygame.sprite.Sprite):
 
-    def __init__(self, position, available):
+    def __init__(self, position, available, path):
         super().__init__()
-        self.image = pygame.surface.Surface((100, 80))
-        self.image.fill("red" if available else "grey")
+
+        self.frames = import_folder(path)
+        self.frame_index = 0
+        self.animation_speed = 0.12
+
+        self.image = self.frames[self.frame_index]
+        self.available = available
+
         self.rect = self.image.get_rect(center=position)
+
+    def animate(self):
+        # TODO: hériter de AnimatedTile plutôt que de copier le code!
+        self.frame_index += self.animation_speed
+        self.frame_index %= len(self.frames)
+        self.image = self.frames[int(self.frame_index)]
+
+    def update(self):
+        if self.available:
+            self.animate()
+        else:
+            tint_surface = self.image.copy()
+            tint_surface.fill('black', special_flags=pygame.BLEND_RGB_MULT)
+            self.image.blit(tint_surface, (0, 0))
 
 
 class Icon(pygame.sprite.Sprite):
 
     def __init__(self, position):
         super().__init__()
-        self.image = pygame.surface.Surface((20, 20))
-        self.image.fill('yellow')
+        self.image = pygame.image.load('graphics/overworld/hat.png').convert_alpha()
         self.rect = self.image.get_rect(center=position)
 
 
@@ -54,6 +75,8 @@ class Overworld:
         self.global_cooldown = None
         self.reset_cooldown()
 
+        self.sky = OverworldSky(horizon=8)
+
     def reset_cooldown(self):
         self.global_cooldown = 30
 
@@ -61,7 +84,7 @@ class Overworld:
         for index, node_data in levels.items():
             available = index <= self.max_level
 
-            self.nodes.add(Node(node_data['node_pos'], available))
+            self.nodes.add(Node(node_data['node_pos'], available, node_data['node_graphics']))
 
     def setup_icon(self):
         icon_sprite = Icon(self.nodes.sprites()[self.current_level].rect.center)
@@ -75,7 +98,7 @@ class Overworld:
         ]
 
         if len(points) > 1:
-            pygame.draw.lines(self.surface, 'red', False, points, 6)
+            pygame.draw.lines(self.surface, '#a04f45', False, points, 6)
 
     def get_input(self):
         if self.global_cooldown:
@@ -125,8 +148,10 @@ class Overworld:
     def run(self):
         self.get_input()
         self.update_icon_position()
+        self.nodes.update()
 
-        self.surface.fill("blue")
+        self.sky.draw(self.surface)
         self.draw_paths()
         self.nodes.draw(self.surface)
         self.icon.draw(self.surface)
+
