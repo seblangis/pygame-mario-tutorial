@@ -10,7 +10,7 @@ from mario.tile import StaticTile, CrateTile, PalmTile, CoinTile, EnemyTile, Con
 
 class Level:
 
-    def __init__(self, level_data, surface, quit_level_func):
+    def __init__(self, level_data, surface, quit_level_func, change_coin_func):
 
         # game setup
         self.display_surface = surface
@@ -74,6 +74,7 @@ class Level:
         self.clouds = Clouds(8, level_width, 20)
 
         self.quit_level = quit_level_func
+        self.change_coin = change_coin_func
 
     def create_particles(self, position, particle_type):
         if self.dust_sprite.sprites():
@@ -90,7 +91,7 @@ class Level:
                 if col == -1:
                     continue
 
-                item = tile_class((x * settings.tile_size, y * settings.tile_size), tiles[col])
+                item = tile_class((x * settings.tile_size, y * settings.tile_size), tiles[col], col)
                 sprite_group.add(item)
 
         return sprite_group
@@ -187,11 +188,20 @@ class Level:
         if self.player.sprite.rect.top > settings.screen_height:
             self.quit_level(success=False)
 
+    def coin_collision_check(self):
+        for collided_coin in pygame.sprite.spritecollide(self.player.sprite, self.coin_sprites, True):
+            self.change_coin(collided_coin.value)
+        #
+        # for coin in self.coin_sprites:
+        #     if coin.rect.colliderect(self.player.sprite.rect):
+        #        coin.kill()
+
     def run(self):
         self.horizontal_movement_collision()
         self.vertical_movement_collision()
 
         self.enemy_collision_reverse()
+        self.coin_collision_check()
         self.goal_collision_check()
 
         self.sky.draw(self.display_surface)

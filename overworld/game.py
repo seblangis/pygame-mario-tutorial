@@ -19,7 +19,7 @@ class Game:
         self.coins = 0
 
     def select_level(self, index):
-        self.level = Level(levels[index], self.surface, self.quit_level)
+        self.level = Level(levels[index], self.surface, self.quit_level, self.change_coin)
 
     def quit_level(self, success):
         if success:
@@ -35,3 +35,6 @@ class Game:
             self.user_interface.show_coins(self.coins)
         else:
             self.overworld.run()
+
+    def change_coin(self, amount):
+        self.coins += amount

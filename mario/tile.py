@@ -4,7 +4,6 @@ import pygame
 from pygame.surface import Surface
 
 from mario.settings import tile_size
-from mario.support import import_folder
 
 
 class Tile(pygame.sprite.Sprite):
@@ -21,7 +20,7 @@ class Tile(pygame.sprite.Sprite):
 
 class StaticTile(Tile):
 
-    def __init__(self, position: tuple[int, int], image: Surface):
+    def __init__(self, position: tuple[int, int], image: Surface, sprite_number=None):
         super().__init__(position, image.get_rect().width)
         self.image = image
 
@@ -38,7 +37,7 @@ class BackgroundTile(StaticTile):
 
 class CrateTile(StaticTile):
 
-    def __init__(self, position: tuple[int, int], surface: Surface):
+    def __init__(self, position: tuple[int, int], surface: Surface, sprite_number=None):
         offset = pygame.math.Vector2(
             0,
             tile_size - surface.get_rect().height,
@@ -68,7 +67,7 @@ class AnimatedTile(Tile):
 
 
 class CenteredAnimatedTile(AnimatedTile):
-    def __init__(self, position: tuple[int, int], frames: list[Surface]):
+    def __init__(self, position: tuple[int, int], frames: list[Surface], sprite_number=None):
         offset = pygame.math.Vector2(
             (tile_size - frames[0].get_rect().width) / 2,
             (tile_size - frames[0].get_rect().height) / 2,
@@ -78,11 +77,20 @@ class CenteredAnimatedTile(AnimatedTile):
 
 
 class CoinTile(CenteredAnimatedTile):
-    pass
+
+    def __init__(self, position: tuple[int, int], frames: list[Surface], sprite_number):
+        offset = pygame.math.Vector2(
+            (tile_size - frames[0].get_rect().width) / 2,
+            (tile_size - frames[0].get_rect().height) / 2,
+        )
+
+        super().__init__(position + offset, frames, sprite_number)
+
+        self.value = 1 if sprite_number == 1 else 5
 
 
 class BasedAnimatedTile(AnimatedTile):
-    def __init__(self, position: tuple[int, int], frames: list[Surface]):
+    def __init__(self, position: tuple[int, int], frames: list[Surface], sprite_number=None):
         offset = pygame.math.Vector2(
             0,
             tile_size - frames[0].get_rect().height,
@@ -97,7 +105,7 @@ class PalmTile(BasedAnimatedTile):
 
 class EnemyTile(BasedAnimatedTile):
 
-    def __init__(self, position: tuple[int, int], frames: list[Surface]):
+    def __init__(self, position: tuple[int, int], frames: list[Surface], sprite_number=None):
         super().__init__(position, frames)
 
         self.speed = random.randint(3, 5)
