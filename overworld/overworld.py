@@ -28,12 +28,13 @@ class Node(pygame.sprite.Sprite):
         self.image = self.frames[int(self.frame_index)]
 
     def update(self):
-        if self.available:
-            self.animate()
-        else:
-            tint_surface = self.image.copy()
-            tint_surface.fill('black', special_flags=pygame.BLEND_RGB_MULT)
-            self.image.blit(tint_surface, (0, 0))
+        self.animate()
+        # if self.available:
+        #     self.animate()
+        # else:
+        #     tint_surface = self.image.copy()
+        #     tint_surface.fill('black', special_flags=pygame.BLEND_RGB_MULT)
+        #     self.image.blit(tint_surface, (0, 0))
 
 
 class Icon(pygame.sprite.Sprite):
