@@ -19,7 +19,7 @@ class Game:
         self.coins = 0
 
     def select_level(self, index):
-        self.level = Level(levels[index], self.surface, self.quit_level, self.change_coin)
+        self.level = Level(levels[index], self.surface, self.quit_level, self.change_coin, self.change_health)
 
     def quit_level(self, success):
         if success:
@@ -38,3 +38,6 @@ class Game:
 
     def change_coin(self, amount):
         self.coins += amount
+
+    def change_health(self, amount):
+        self.current_health -= amount

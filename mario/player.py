@@ -1,4 +1,5 @@
 import os
+import random
 
 import pygame
 
@@ -7,7 +8,7 @@ from mario.support import walk_folders, import_folder
 
 class Player(pygame.sprite.Sprite):
 
-    def __init__(self, position, surface, create_particle):
+    def __init__(self, position, surface, create_particle, change_health_func):
         super().__init__()
         self.create_particle = create_particle
 
@@ -39,6 +40,11 @@ class Player(pygame.sprite.Sprite):
         self.on_ceiling = False
         self.on_left = False
         self.on_right = False
+
+        self.change_health = change_health_func
+        self.invincible = True
+        self.invincibility_duration = 400
+        self.hurt_time = 0
 
         # gamepad
         if pygame.joystick.get_count():
@@ -93,6 +99,11 @@ class Player(pygame.sprite.Sprite):
         else:
             self.rect = self.image.get_rect(center=self.rect.center)
 
+        if self.invincible:
+            self.image.set_alpha(random.randint(64, 255))
+        else:
+            self.image.set_alpha(255)
+
     def run_dust_animation(self):
         if self.status != 'run' or not self.on_ground:
             return
@@ -143,8 +154,25 @@ class Player(pygame.sprite.Sprite):
         self.direction.y = self.jump_speed
         self.create_particle(self.rect.midbottom, 'jump')
 
+    def get_damaged(self):
+        if self.invincible:
+            return
+
+        self.change_health(random.randint(5, 15))
+        self.hurt_time = pygame.time.get_ticks()
+        self.invincible = True
+
+    def invincibility_timer(self):
+        if not self.invincible:
+            return
+
+        current_time = pygame.time.get_ticks()
+        if current_time - self.hurt_time >= self.invincibility_duration:
+            self.invincible = False
+
     def update(self, _):
         self.get_input()
         self.get_status()
         self.animate()
+        self.invincibility_timer()
         self.run_dust_animation()

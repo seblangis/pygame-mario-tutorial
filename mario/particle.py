@@ -10,10 +10,14 @@ class ParticleEffect(pygame.sprite.Sprite):
         self.frame_index = 0
         self.animation_speed = 0.5
 
-        self.frames = import_folder(f'graphics/character/dust_particles/{particle_type}')
-
-        self.image = self.frames[self.frame_index]
-        self.rect = self.image.get_rect(midbottom=position)
+        if particle_type == 'explosion':
+            self.frames = import_folder(f'graphics/enemy/{particle_type}')
+            self.image = self.frames[self.frame_index]
+            self.rect = self.image.get_rect(center=position)
+        else:
+            self.frames = import_folder(f'graphics/character/dust_particles/{particle_type}')
+            self.image = self.frames[self.frame_index]
+            self.rect = self.image.get_rect(midbottom=position)
 
     def animate(self):
         self.frame_index += self.animation_speed

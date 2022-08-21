@@ -10,12 +10,17 @@ from mario.tile import StaticTile, CrateTile, PalmTile, CoinTile, EnemyTile, Con
 
 class Level:
 
-    def __init__(self, level_data, surface, quit_level_func, change_coin_func):
+    def __init__(self, level_data, surface, quit_level_func, change_coin_func, change_health_func):
 
         # game setup
         self.display_surface = surface
         self.world_shift = 0
         self.current_x = 0
+
+        # callbacks
+        self.quit_level = quit_level_func
+        self.change_coin = change_coin_func
+        self.change_health = change_health_func
 
         # player setup
         player_layout = import_csv_layout(level_data['player'])
@@ -38,11 +43,11 @@ class Level:
         self.crate_sprites = self.create_tile_group(crate_layout, crate_tiles, CrateTile)
 
         coin_layout = import_csv_layout(level_data['coins'])
-        coin_tiles = [
+        self.coin_tiles = [
             import_folder(game_data.tilesets['coins'][0]),
             import_folder(game_data.tilesets['coins'][1]),
         ]
-        self.coin_sprites = self.create_tile_group(coin_layout, coin_tiles, CoinTile)
+        self.coin_sprites = self.create_tile_group(coin_layout, self.coin_tiles, CoinTile)
 
         fg_palm_layout = import_csv_layout(level_data['fg palms'])
         palm_tiles = [
@@ -66,15 +71,13 @@ class Level:
 
         # dust
         self.dust_sprite = pygame.sprite.GroupSingle()
+        self.explosion_sprites = pygame.sprite.Group()
 
         # decorations
         self.sky = Sky(8)
         level_width = len(terrain_layout[0]) * settings.tile_size
         self.water = Water(settings.screen_height - 20, level_width)
         self.clouds = Clouds(8, level_width, 20)
-
-        self.quit_level = quit_level_func
-        self.change_coin = change_coin_func
 
     def create_particles(self, position, particle_type):
         if self.dust_sprite.sprites():
@@ -104,7 +107,7 @@ class Level:
 
                 if col == 0:
                     item = Player((x * settings.tile_size, y * settings.tile_size), self.display_surface,
-                                  self.create_particles)
+                                  self.create_particles, self.change_health)
                     self.player.add(item)
 
                 if col == 1:
@@ -188,6 +191,22 @@ class Level:
         if self.player.sprite.rect.top > settings.screen_height:
             self.quit_level(success=False)
 
+    def enemy_collision_check(self):
+        for collided_enemy in pygame.sprite.spritecollide(self.player.sprite, self.enemy_sprites, False):
+            enemy_center = collided_enemy.rect.centery
+            enemy_top = collided_enemy.rect.top
+            player_bottom = self.player.sprite.rect.bottom
+
+            if enemy_top < player_bottom < enemy_center and self.player.sprite.direction.y > 0:
+                self.player.sprite.direction.y *= -0.8
+                explosion_sprite = ParticleEffect(collided_enemy.rect.center, 'explosion')
+                self.explosion_sprites.add(explosion_sprite)
+                self.coin_sprites.add(CoinTile(collided_enemy.rect.midtop, self.coin_tiles[1], 1))
+                collided_enemy.kill()
+
+            else:
+                self.player.sprite.get_damaged()
+
     def coin_collision_check(self):
         for collided_coin in pygame.sprite.spritecollide(self.player.sprite, self.coin_sprites, True):
             self.change_coin(collided_coin.value)
@@ -202,9 +221,11 @@ class Level:
 
         self.enemy_collision_reverse()
         self.coin_collision_check()
+        self.enemy_collision_check()
         self.goal_collision_check()
 
         self.sky.draw(self.display_surface)
+
         for sprite_group in [
             self.constraint_sprites,
             self.clouds.cloud_sprites,
@@ -214,6 +235,7 @@ class Level:
             self.terrain_sprites,
             self.coin_sprites,
             self.dust_sprite,
+            self.explosion_sprites,
             self.enemy_sprites,
             self.goal,
             self.water.water_sprites,
@@ -222,5 +244,4 @@ class Level:
         ]:
             sprite_group.update(self.world_shift)
             sprite_group.draw(self.display_surface)
-
         self.scroll_x()
