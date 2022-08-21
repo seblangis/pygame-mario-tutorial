@@ -25,6 +25,12 @@ class Game:
         if success:
             self.overworld.max_level = overworld_levels[self.overworld.current_level]['unlock']
 
+        if self.current_health <= 0:
+            self.current_health = self.max_health
+            self.coins = 0
+
+            self.overworld.reset()
+
         self.level = None
         self.overworld.reset_cooldown()
 
@@ -41,3 +47,5 @@ class Game:
 
     def change_health(self, amount):
         self.current_health -= amount
+
+        return self.current_health > 0

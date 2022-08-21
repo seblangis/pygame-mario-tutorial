@@ -34,6 +34,7 @@ class Player(pygame.sprite.Sprite):
         self.jump_speed = -16
 
         # player status
+        self.alive = True
         self.status = 'idle'
         self.facing_right = True
         self.on_ground = False
@@ -158,7 +159,7 @@ class Player(pygame.sprite.Sprite):
         if self.invincible:
             return
 
-        self.change_health(random.randint(5, 15))
+        self.alive = self.change_health(random.randint(5, 15))
         self.hurt_time = pygame.time.get_ticks()
         self.invincible = True
 

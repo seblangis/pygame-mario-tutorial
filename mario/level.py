@@ -207,6 +207,9 @@ class Level:
             else:
                 self.player.sprite.get_damaged()
 
+                if not self.player.sprite.alive:
+                    self.quit_level(False)
+
     def coin_collision_check(self):
         for collided_coin in pygame.sprite.spritecollide(self.player.sprite, self.coin_sprites, True):
             self.change_coin(collided_coin.value)

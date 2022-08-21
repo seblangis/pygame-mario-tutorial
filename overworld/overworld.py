@@ -63,6 +63,7 @@ class Overworld:
         self.move_direction = None
         self.movement_parts_count = 20
         self.movement_part = 0
+        self.reset_position = self.icon.sprite.rect.center
 
         # gamepad
         if pygame.joystick.get_count():
@@ -77,6 +78,11 @@ class Overworld:
         self.reset_cooldown()
 
         self.sky = OverworldSky(horizon=8)
+
+    def reset(self):
+        self.current_level = 0
+        self.max_level = 0
+        self.icon.sprite.rect.center = self.reset_position
 
     def reset_cooldown(self):
         self.global_cooldown = 30
